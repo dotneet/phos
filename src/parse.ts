@@ -58,12 +58,15 @@ function parseSource(
     source,
     options
   );
-  const importStatements: ModuleRefernce[] = strategy.extractModuleReferences(
+  const moduleReferences: ModuleRefernce[] = strategy.extractModuleReferences(
     source,
     options
   );
+  const filteredModuleReferences = moduleReferences.filter(
+    (s) => s.module !== sourceModule
+  );
   return {
     sourceModule,
-    imports: importStatements,
+    imports: filteredModuleReferences,
   };
 }

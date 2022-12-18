@@ -1,12 +1,5 @@
 import { Sha1 } from "https://deno.land/std@0.140.0/hash/sha1.ts";
-import {
-  Edge,
-  Graph,
-  tsort,
-  TSortResult,
-  Vertex,
-  decomposeSCC,
-} from "npm:@devneko/graph-ts@0.1.6";
+import { decomposeSCC, Graph, Vertex } from "npm:@devneko/graph-ts@0.1.7";
 import { ParseResult } from "./parse.ts";
 
 export type PackageDependency = {
