@@ -11,7 +11,7 @@ export const scalaParseStrategy: Strategy = {
     for (const importResult of imports) {
       if (
         !options.moduleNameFilter ||
-        importResult[0].includes(options.moduleNameFilter)
+        importResult[0].match(options.moduleNameFilter)
       ) {
         const importStatement = importResult[1].trim();
         const r: RegExpMatchArray | null = importStatement.match(

@@ -4,7 +4,7 @@ import { parse } from "https://deno.land/std@0.168.0/flags/mod.ts";
 
 import { displayCyclickPackages, toMermaidFlowchart } from "./src/analyze.ts";
 import { scalaParseStrategy } from "./src/lang/scala.ts";
-import { parseSource, type ParseResult } from "./src/parse.ts";
+import { parseSource, Strategy, type ParseResult } from "./src/parse.ts";
 
 // Learn more at https://deno.land/manual/examples/module_metadata#concepts
 if (import.meta.main) {
@@ -17,12 +17,19 @@ if (import.meta.main) {
   for await (const entry of expandGlob(`${dir}/**/*.scala`, {
     globstar: true,
   })) {
+    let strategy: Strategy = scalaParseStrategy;
+    if (lang === "scala") {
+      strategy = scalaParseStrategy;
+    } else {
+      throw new Error(`Not supported: ${lang}`);
+    }
     const source = await Deno.readTextFile(entry.path);
-    parseResults.push(
-      parseSource(scalaParseStrategy, source, {
-        moduleNameFilter: moduleFilter,
-      })
-    );
+    const parseResult = parseSource(strategy, source, {
+      moduleNameFilter: moduleFilter,
+    });
+    if (!moduleFilter || parseResult.sourceModule?.match(moduleFilter)) {
+      parseResults.push(parseResult);
+    }
   }
   switch (subcommand) {
     case "detect-cyclic":
