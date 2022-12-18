@@ -1,45 +1,40 @@
 export type ParseResult = {
-  sourcePackage: string | null;
-  imports: ImportStatement[];
+  sourceModule: string | null;
+  imports: ModuleRefernce[];
 };
 
 export type ParseOptions = {
-  packageNameFilter: string | null;
+  moduleNameFilter: string | null;
 };
 
-export type ImportStatement = {
-  importObject: string;
-  importPackage: string;
+export type ModuleRefernce = {
+  object: string;
+  module: string;
+};
+
+export type Strategy = {
+  extractSourceModule: (source: string, options: ParseOptions) => string | null;
+  extractModuleReferences: (
+    source: string,
+    options: ParseOptions
+  ) => ModuleRefernce[];
 };
 
 export function parseSource(
+  strategy: Strategy,
   source: string,
   options: ParseOptions
 ): ParseResult {
-  const packageResult = source.match(/package +([a-zA-Z0-9+.]+)/);
-  const sourcePackage: string | null =
-    packageResult !== null ? packageResult[1] : null;
-  const importStatements: ImportStatement[] = [];
-  const imports = source.matchAll(/import +([a-zA-Z0-9+.{}_,* ]+)\n/g);
-  for (const importResult of imports) {
-    if (
-      !options.packageNameFilter ||
-      importResult[0].includes(options.packageNameFilter)
-    ) {
-      const importStatement = importResult[1].trim();
-      const r: RegExpMatchArray | null = importStatement.match(
-        /([a-z0-9_.]+)\.([A-Z{][a-zA-Z0-9]*)/
-      );
-      if (r !== null) {
-        importStatements.push({
-          importPackage: r[1],
-          importObject: r[2],
-        });
-      }
-    }
-  }
+  const sourceModule: string | null = strategy.extractSourceModule(
+    source,
+    options
+  );
+  const importStatements: ModuleRefernce[] = strategy.extractModuleReferences(
+    source,
+    options
+  );
   return {
-    sourcePackage,
+    sourceModule,
     imports: importStatements,
   };
 }

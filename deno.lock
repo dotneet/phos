@@ -22,7 +22,9 @@
     "specifiers": {
       "@devneko/graph-ts": "@devneko/graph-ts@0.1.0",
       "@devneko/graph-ts@0.1.1": "@devneko/graph-ts@0.1.1",
-      "@devneko/graph-ts@0.1.2": "@devneko/graph-ts@0.1.2"
+      "@devneko/graph-ts@0.1.2": "@devneko/graph-ts@0.1.2",
+      "@devneko/graph-ts@0.1.5": "@devneko/graph-ts@0.1.5",
+      "@devneko/graph-ts@0.1.6": "@devneko/graph-ts@0.1.6"
     },
     "packages": {
       "@devneko/graph-ts@0.1.0": {
@@ -35,6 +37,14 @@
       },
       "@devneko/graph-ts@0.1.2": {
         "integrity": "sha512-tkAle8hAilODChQ0mT5JH9jKj/K2oUDQl0iKuFg9hNKAWlfBbt614eV3Py5ORTKJRTwLIEasLBzRjoF13MJ2Rg==",
+        "dependencies": { "uuid": "uuid@9.0.0" }
+      },
+      "@devneko/graph-ts@0.1.5": {
+        "integrity": "sha512-v25UN+pgly5jTJjoCBoPscsUvWeGKnPsUeNH1En9WPM8woOYoXHoYjxLPDMnnNDVgsqgW3oasKw2t0MWnfIZEw==",
+        "dependencies": { "uuid": "uuid@9.0.0" }
+      },
+      "@devneko/graph-ts@0.1.6": {
+        "integrity": "sha512-IFcXrldALv0i/adAnZk1hLC3jCLD4Jgthiy6VIbyD6OKXvNYr77kGCTqgYb9fYnzPCmOiE+GCI7c7xD1v6JBpQ==",
         "dependencies": { "uuid": "uuid@9.0.0" }
       },
       "uuid@9.0.0": {

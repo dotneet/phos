@@ -1,11 +1,12 @@
 import { Sha1 } from "https://deno.land/std@0.140.0/hash/sha1.ts";
 import {
+  Edge,
   Graph,
   tsort,
-  Vertex,
-  Edge,
   TSortResult,
-} from "npm:@devneko/graph-ts@0.1.2";
+  Vertex,
+  decomposeSCC,
+} from "npm:@devneko/graph-ts@0.1.6";
 import { ParseResult } from "./parse.ts";
 
 export type PackageDependency = {
@@ -17,44 +18,72 @@ export type AnalyzeResult = {
   packageDependencies: PackageDependency;
 };
 
+export function displayCyclickPackages(parseResults: ParseResult[]): void {
+  const graph = new Graph();
+  const items: Map<string, { from: Vertex; to: Vertex }> = new Map();
+  const vertexMap: Map<string, Vertex> = new Map();
+  for (const r of parseResults) {
+    if (r.sourceModule !== null) {
+      if (!vertexMap.has(r.sourceModule)) {
+        const v = graph.addVertex("package", {
+          name: r.sourceModule,
+        });
+        vertexMap.set(r.sourceModule, v);
+      }
+      for (const i of r.imports) {
+        if (!vertexMap.has(i.module)) {
+          const v = graph.addVertex("package", {
+            name: i.module,
+          });
+          vertexMap.set(i.module, v);
+        }
+        const inV = vertexMap.get(r.sourceModule)!;
+        const outV = vertexMap.get(i.module)!;
+        items.set(inV.props.get("name") + " ==> " + outV.props.get("name"), {
+          from: inV,
+          to: outV,
+        });
+      }
+    }
+  }
+  for (const item of items) {
+    graph.addEdge("refer", item[1].from, item[1].to);
+  }
+  const sccs = decomposeSCC(graph);
+  for (const scc of sccs) {
+    if (scc.length > 1) {
+      console.log("cyclic modules:");
+      for (const c of scc) {
+        console.log(c.props.get("name"));
+      }
+      console.log("");
+    }
+  }
+}
+
 function toMermaidNotation(packageName: string): string {
   // Use a hash in case the package name contains a reserved word.
   const hash = new Sha1().update(packageName).hex().slice(0, 8);
   return `${hash}(${packageName})`;
 }
 
-export function displayCyclickPackages(parseResults: ParseResult[]): void {
-  const graph = new Graph();
-  const items: Map<string, { inV: Vertex; outV: Vertex }> = new Map();
-  const vertexMap: Map<string, Vertex> = new Map();
+export function toMermaidFlowchart(parseResults: ParseResult[]): string {
+  const dependencySet: Set<string> = new Set();
   for (const r of parseResults) {
-    if (r.sourcePackage !== null) {
-      if (!vertexMap.has(r.sourcePackage)) {
-        const v = graph.createVertex("package", {
-          name: r.sourcePackage,
-        });
-        vertexMap.set(r.sourcePackage, v);
-      }
-      for (const i of r.imports) {
-        if (!vertexMap.has(i.importPackage)) {
-          const v = graph.createVertex("package", {
-            name: i.importPackage,
-          });
-          vertexMap.set(i.importPackage, v);
-        }
-        const inV = vertexMap.get(r.sourcePackage)!;
-        const outV = vertexMap.get(i.importPackage)!;
-        items.set(inV.id + "-" + outV.id, { inV: inV, outV: outV });
+    if (r.sourceModule) {
+      for (const module of r.imports) {
+        dependencySet.add(
+          `${toMermaidNotation(r.sourceModule)} --> ${toMermaidNotation(
+            module.module
+          )}`
+        );
       }
     }
   }
-  for (const item of items) {
-    graph.createEdge(item[1].inV, item[1].outV);
+
+  let mermaid = "flowchart LR\n";
+  for (const dependency of dependencySet) {
+    mermaid += `    ${dependency}\n`;
   }
-  const r: TSortResult = tsort(graph);
-  r.restEdges.forEach((e: Edge) => {
-    const i = e.inVertex.props.get("name");
-    const o = e.outVertex.props.get("name");
-    console.log(`${i} ==> ${o}`);
-  });
+  return mermaid;
 }
